@@ -40,7 +40,10 @@ def retreive_argparse_arguments():
 
 
 def create_jira_session():
-    """
+    """Create and return a jira session based on authentication.
+    
+    Returns:
+        JIRA.session object if Success. Raise Error otherwise.
     """
 
     jira_server = os.environ.get('JIRA_SERVER', '')
@@ -52,7 +55,14 @@ def create_jira_session():
 
 
 def get_user_tickets_in_range(session, user, days, max_results):
-    """
+    """SQL query to retrieve JIRA tickets assigned to user and updated
+    within day range.
+    
+    Args:
+        session : (JIRA.session) : JIRA session object.
+        user : (Str) : current user.
+        days : (Int) : number of days to look back.
+        max_results : (Int) : maximum number of results to return.
     """
 
     query = "assignee = {0} and updated >=  -{1}d order by key".format(user, days)
@@ -61,14 +71,30 @@ def get_user_tickets_in_range(session, user, days, max_results):
 
 
 def get_ticket_comments(ticket, session):
-    """
+    """Get comments for given ticket.
+    
+    Args:
+        ticket : (JIRA.ticket) : JIRA ticket object.
+        session : (JIRA.session) : JIRA session object.
+    
+    Returns:
+        comments from jira ticket.
     """
 
     return session.comments(ticket)
 
 
 def has_user_commented(ticket, session, user):
-    """
+    """determine if user has commented on 
+    a given ticket.
+    
+    Args:
+        ticket : (JIRA.ticket) : JIRA ticket object.
+        session : (JIRA.session) : JIRA session object.
+        user : (Str) : Current user.
+        
+    Returns:
+        'YES' if user has commented, 'NO' otherwise.
     """
 
     comments = get_ticket_comments(ticket, session)
@@ -79,7 +105,18 @@ def has_user_commented(ticket, session, user):
 
 
 def get_ticket_data(session, ticket, user):
-    """
+    """Retrieves fields from the given ticket object.
+
+    Args:
+        session : (Jira.session) : JIRA session object.
+        ticket: (JIRA.ticket) : JIRA ticket object.
+        user : (Str) : Current User.
+       
+    Returns:
+        name : (Str) : name of JIRA ticket.
+        summary : (Str) : Summary of JIRA ticket.
+        status : (Str) : Status of JIRA ticket.
+        commented : (Str) : If user has commented on ticket.
     """
 
     name = ticket.key
@@ -91,7 +128,18 @@ def get_ticket_data(session, ticket, user):
 
 
 def get_active_tickets(session, user, days, max_results):
-    """
+    """Retrieves active tickets for user. 
+    An active ticket is a ticket that the user has interacted
+    with within the day range.
+
+    Args:
+        session : (Jira.session) : JIRA session object.
+        user : (Str) : Current User.
+        days : (Int) : Number of days to look back in JIRA.
+        max_results : (Int) : Max results to retrieve from JIRA database.
+       
+    Returns:
+        interacted_tickets : (List<List>) : List of lists of ticket data.
     """
 
     assigned_tickets = get_user_tickets_in_range(session,
@@ -109,7 +157,15 @@ def get_active_tickets(session, user, days, max_results):
 
 
 def color_text(text):
-    """
+    """Utility function to print text in given color.
+    
+    TODO... Could this be turned in ot a decorator?
+    
+    Args:
+        text : (Str) : String of text to color.
+        
+    Returns:
+        text : (Str) : colored text.
     """
 
     if not text:
@@ -147,7 +203,14 @@ def clean_row_data(data):
 
 
 def track_tickets(session, user, days, max_results, sort_by):
-    """
+    """Creates table consisting of valid tickets in the terminal color coded.
+    
+    Args:
+        session : (Jira.session) : JIRA session object.
+        user : (Str) : Current User.
+        days : (Int) : Number of days to look back in JIRA.
+        max_results : (Int) : Max results to retrieve from JIRA database.
+        sort_by : (Str) : String key to sort table by given task type.
     """
 
     headers = {'ticket': 0,
@@ -173,7 +236,7 @@ def track_tickets(session, user, days, max_results, sort_by):
 
 
 def main():
-    """
+    """Main script event loop
     """
 
     arguments = retreive_argparse_arguments()
@@ -181,7 +244,8 @@ def main():
 
     track_tickets(session,
                   arguments.user,
-                  arguments.days,                                        arguments.max_results,
+                  arguments.days,
+                  arguments.max_results,
                   arguments.sort_by)
 
 
